@@ -45,26 +45,32 @@ for i=1:3
 end
 
 options = [NaN 300 0.001 0];
-[centers, U, objFun] = fcm(input, 3, options);
+% [centers, U, objFun] = fcm(input, 3, options);
+[centers, U, objFun] = fcm(input, 3);
+
+save('trainresult.mat', 'centers');
+
+% end of train here. The next lines is to test the algorithm
 
 tmp = zeros(size(Icrop,1), size(Icrop, 2), 3);
 for i=1:3
     tmp(:,:,i) = reshape(U(i,:), size(Icrop,1), size(Icrop,2));
 end
 
-% find the darkest point
+% find the brightest cluster
+% brightest cluster is the pad
 t = centers*255;
 t = 0.29*t(:,1) + 0.59*t(:,2) + 0.11*t(:,3);
-[~,cdarkest] = min(t);
+[~,cbrightest] = max(t);
 
 Iclust = zeros(size(Icrop,1), size(Icrop, 2));
 for i=1:size(Icrop,1)
     for j=1:size(Icrop,2)
         [~,loc] = max(tmp(i,j,:));
-        if loc==cdarkest
-            Iclust(i,j) = 1;
-        else
+        if loc==cbrightest
             Iclust(i,j) = 0;
+        else
+            Iclust(i,j) = 1;
         end
     end
 end
@@ -76,5 +82,3 @@ kotoran = Iclust - double(bw);
 figure, imshow(Icrop);
 figure, imshow(bw,[]);
 figure, imshow(kotoran,[]);
-
-save('trainresult.mat', 'centers');

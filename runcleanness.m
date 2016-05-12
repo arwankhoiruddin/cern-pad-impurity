@@ -2,7 +2,7 @@ close all
 clear
 clc
 
-Iorig = imread('chip01/row2/10x_03.jpg');
+Iorig = imread('chip04/row3/10x_01.jpg');
 
 I = rgb2gray(Iorig);
 tmpl = rgb2gray(imread('template/tmpl.jpg'));
@@ -12,6 +12,8 @@ scale = 0.2;
 Iorig = imresize(Iorig, scale);
 I = imresize(I, scale);
 tmpl = imresize(tmpl, scale);
+
+figure, imshow(Iorig);
 
 % calculate padding
 bx = size(I, 2);
@@ -29,7 +31,7 @@ c = real(ifft2((Ga.*conj(Gb)) ./ abs(Ga.*conj(Gb))));
 [ypeak, xpeak] = find(c==max(c(:)));
 % figure, surf(c), shading flat;
 
-position = [xpeak(1), ypeak(1), tx, ty];
+position = [xpeak(1), ypeak(1), tx-1, ty-1];
 
 % crop the image
 for i=1:3
@@ -40,6 +42,8 @@ end
 load('trainresult.mat');
 Igray = double((Icrop)) / 255;
 Iclust = zeros(size(Icrop,1), size(Icrop,2));
+Itmpl = zeros(size(Icrop,1), size(Icrop,2));
+
 for i=1:size(Icrop,1)
     for j=1:size(Icrop,2)
         % find euclidean distance of each pixel to each cluster
@@ -66,10 +70,15 @@ for i=1:size(Icrop,1)
     end
 end
 
+figure, imshow(Iclust);
+
 tr = size(Iclust,1)*size(Iclust,2) / 4;
 bw = bwareaopen(logical(Iclust), tr);
 
-noclean = Iclust - double(bw);
+figure, imshow(bw,[]);
+
+% noclean = Iclust .* double(bw);
+noclean = xor(logical(Iclust),bw);
 
 if max(noclean(:))==0
     disp('the pad is clean');
@@ -78,4 +87,4 @@ else
 end
 
 figure, imshow(Icrop);
-figure, imshow(noclean,[]);
+figure, imshow(noclean);
